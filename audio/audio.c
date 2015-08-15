@@ -27,7 +27,7 @@
 #include "qemu-timer.h"
 #include "sysemu.h"
 
-#define AUDIO_CAP "audio"
+//#define AUDIO_CAP "audio"
 #include "audio_int.h"
 
 /* #define DEBUG_PLIVE */
@@ -123,18 +123,17 @@ static void audio_print_options (const char *prefix,
 
 int audio_bug (const char *funcname, int cond)
 {
+    static int shown;
+    
     if (cond) {
-        static int shown;
-
         AUD_log (NULL, "A bug was just triggered in %s\n", funcname);
         if (!shown) {
             struct audio_driver *d;
-
             shown = 1;
             AUD_log (NULL, "Save all your work and restart without audio\n");
             AUD_log (NULL, "Please send bug report to av1474@comtv.ru\n");
             AUD_log (NULL, "I am sorry\n");
-            d = glob_audio_state.drv;
+            d = &glob_audio_state.drv;
             if (d) {
                 audio_print_options (d->name, d->options);
             }
@@ -226,6 +225,9 @@ static char *audio_alloc_prefix (const char *s)
 
 static const char *audio_audfmt_to_string (audfmt_e fmt)
 {
+    if((fmt == AUD_FMT_U8) || (fmt == AUD_FMT_S8) || 
+    (fmt == AUD_FMT_U16) || (fmt == AUD_FMT_S16) || 
+    (fmt == AUD_FMT_U32) || (fmt == AUD_FMT_S32)){
     switch (fmt) {
     case AUD_FMT_U8:
         return "U8";
@@ -245,7 +247,7 @@ static const char *audio_audfmt_to_string (audfmt_e fmt)
     case AUD_FMT_S32:
         return "S32";
     }
-
+    }
     dolog ("Bogus audfmt %d returning S16\n", fmt);
     return "S16";
 }
