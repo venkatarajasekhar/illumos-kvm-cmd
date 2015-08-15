@@ -102,6 +102,103 @@ static struct {
     .try_poll_out = 1,
 };
 
+static struct audio_option audio_options[] = {
+    /* DAC */
+    {
+        .name  = "DAC_FIXED_SETTINGS",
+        .tag   = AUD_OPT_BOOL,
+        .valp  = &conf.fixed_out.enabled,
+        .descr = "Use fixed settings for host DAC"
+    },
+    {
+        .name  = "DAC_FIXED_FREQ",
+        .tag   = AUD_OPT_INT,
+        .valp  = &conf.fixed_out.settings.freq,
+        .descr = "Frequency for fixed host DAC"
+    },
+    {
+        .name  = "DAC_FIXED_FMT",
+        .tag   = AUD_OPT_FMT,
+        .valp  = &conf.fixed_out.settings.fmt,
+        .descr = "Format for fixed host DAC"
+    },
+    {
+        .name  = "DAC_FIXED_CHANNELS",
+        .tag   = AUD_OPT_INT,
+        .valp  = &conf.fixed_out.settings.nchannels,
+        .descr = "Number of channels for fixed DAC (1 - mono, 2 - stereo)"
+    },
+    {
+        .name  = "DAC_VOICES",
+        .tag   = AUD_OPT_INT,
+        .valp  = &conf.fixed_out.nb_voices,
+        .descr = "Number of voices for DAC"
+    },
+    {
+        .name  = "DAC_TRY_POLL",
+        .tag   = AUD_OPT_BOOL,
+        .valp  = &conf.try_poll_out,
+        .descr = "Attempt using poll mode for DAC"
+    },
+    /* ADC */
+    {
+        .name  = "ADC_FIXED_SETTINGS",
+        .tag   = AUD_OPT_BOOL,
+        .valp  = &conf.fixed_in.enabled,
+        .descr = "Use fixed settings for host ADC"
+    },
+    {
+        .name  = "ADC_FIXED_FREQ",
+        .tag   = AUD_OPT_INT,
+        .valp  = &conf.fixed_in.settings.freq,
+        .descr = "Frequency for fixed host ADC"
+    },
+    {
+        .name  = "ADC_FIXED_FMT",
+        .tag   = AUD_OPT_FMT,
+        .valp  = &conf.fixed_in.settings.fmt,
+        .descr = "Format for fixed host ADC"
+    },
+    {
+        .name  = "ADC_FIXED_CHANNELS",
+        .tag   = AUD_OPT_INT,
+        .valp  = &conf.fixed_in.settings.nchannels,
+        .descr = "Number of channels for fixed ADC (1 - mono, 2 - stereo)"
+    },
+    {
+        .name  = "ADC_VOICES",
+        .tag   = AUD_OPT_INT,
+        .valp  = &conf.fixed_in.nb_voices,
+        .descr = "Number of voices for ADC"
+    },
+    {
+        .name  = "ADC_TRY_POLL",
+        .tag   = AUD_OPT_BOOL,
+        .valp  = &conf.try_poll_in,
+        .descr = "Attempt using poll mode for ADC"
+    },
+    /* Misc */
+    {
+        .name  = "TIMER_PERIOD",
+        .tag   = AUD_OPT_INT,
+        .valp  = &conf.period.hertz,
+        .descr = "Timer period in HZ (0 - use lowest possible)"
+    },
+    {
+        .name  = "PLIVE",
+        .tag   = AUD_OPT_BOOL,
+        .valp  = &conf.plive,
+        .descr = "(undocumented)"
+    },
+    {
+        .name  = "LOG_TO_MONITOR",
+        .tag   = AUD_OPT_BOOL,
+        .valp  = &conf.log_to_monitor,
+        .descr = "Print logging messages to monitor instead of stderr"
+    },
+    { /* End of list */ }
+};
+
 static AudioState glob_audio_state;
 
 const struct mixeng_volume nominal_volume = {
@@ -1555,102 +1652,7 @@ void audio_run (const char *msg)
 #endif
 }
 
-static struct audio_option audio_options[] = {
-    /* DAC */
-    {
-        .name  = "DAC_FIXED_SETTINGS",
-        .tag   = AUD_OPT_BOOL,
-        .valp  = &conf.fixed_out.enabled,
-        .descr = "Use fixed settings for host DAC"
-    },
-    {
-        .name  = "DAC_FIXED_FREQ",
-        .tag   = AUD_OPT_INT,
-        .valp  = &conf.fixed_out.settings.freq,
-        .descr = "Frequency for fixed host DAC"
-    },
-    {
-        .name  = "DAC_FIXED_FMT",
-        .tag   = AUD_OPT_FMT,
-        .valp  = &conf.fixed_out.settings.fmt,
-        .descr = "Format for fixed host DAC"
-    },
-    {
-        .name  = "DAC_FIXED_CHANNELS",
-        .tag   = AUD_OPT_INT,
-        .valp  = &conf.fixed_out.settings.nchannels,
-        .descr = "Number of channels for fixed DAC (1 - mono, 2 - stereo)"
-    },
-    {
-        .name  = "DAC_VOICES",
-        .tag   = AUD_OPT_INT,
-        .valp  = &conf.fixed_out.nb_voices,
-        .descr = "Number of voices for DAC"
-    },
-    {
-        .name  = "DAC_TRY_POLL",
-        .tag   = AUD_OPT_BOOL,
-        .valp  = &conf.try_poll_out,
-        .descr = "Attempt using poll mode for DAC"
-    },
-    /* ADC */
-    {
-        .name  = "ADC_FIXED_SETTINGS",
-        .tag   = AUD_OPT_BOOL,
-        .valp  = &conf.fixed_in.enabled,
-        .descr = "Use fixed settings for host ADC"
-    },
-    {
-        .name  = "ADC_FIXED_FREQ",
-        .tag   = AUD_OPT_INT,
-        .valp  = &conf.fixed_in.settings.freq,
-        .descr = "Frequency for fixed host ADC"
-    },
-    {
-        .name  = "ADC_FIXED_FMT",
-        .tag   = AUD_OPT_FMT,
-        .valp  = &conf.fixed_in.settings.fmt,
-        .descr = "Format for fixed host ADC"
-    },
-    {
-        .name  = "ADC_FIXED_CHANNELS",
-        .tag   = AUD_OPT_INT,
-        .valp  = &conf.fixed_in.settings.nchannels,
-        .descr = "Number of channels for fixed ADC (1 - mono, 2 - stereo)"
-    },
-    {
-        .name  = "ADC_VOICES",
-        .tag   = AUD_OPT_INT,
-        .valp  = &conf.fixed_in.nb_voices,
-        .descr = "Number of voices for ADC"
-    },
-    {
-        .name  = "ADC_TRY_POLL",
-        .tag   = AUD_OPT_BOOL,
-        .valp  = &conf.try_poll_in,
-        .descr = "Attempt using poll mode for ADC"
-    },
-    /* Misc */
-    {
-        .name  = "TIMER_PERIOD",
-        .tag   = AUD_OPT_INT,
-        .valp  = &conf.period.hertz,
-        .descr = "Timer period in HZ (0 - use lowest possible)"
-    },
-    {
-        .name  = "PLIVE",
-        .tag   = AUD_OPT_BOOL,
-        .valp  = &conf.plive,
-        .descr = "(undocumented)"
-    },
-    {
-        .name  = "LOG_TO_MONITOR",
-        .tag   = AUD_OPT_BOOL,
-        .valp  = &conf.log_to_monitor,
-        .descr = "Print logging messages to monitor instead of stderr"
-    },
-    { /* End of list */ }
-};
+
 
 static void audio_pp_nb_voices (const char *typ, int nb)
 {
