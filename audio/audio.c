@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <string.h>
 #include "hw/hw.h"
 #include "audio.h"
 #include "monitor.h"
@@ -253,6 +254,7 @@ static const char *audio_audfmt_to_string (audfmt_e fmt)
 static audfmt_e audio_string_to_audfmt (const char *s, audfmt_e defval,
                                         int *defaultp)
 {
+    if((s) && (defaultp)){
     if (!strcasecmp (s, "u8")) {
         *defaultp = 0;
         return AUD_FMT_U8;
@@ -283,6 +285,8 @@ static audfmt_e audio_string_to_audfmt (const char *s, audfmt_e defval,
         *defaultp = 1;
         return defval;
     }
+    }
+    return defval;
 }
 
 static audfmt_e audio_get_conf_fmt (const char *envname,
@@ -513,9 +517,12 @@ static void audio_process_options (const char *prefix,
 
 static void audio_print_settings (struct audsettings *as)
 {
-    dolog ("frequency=%d nchannels=%d fmt=", as->freq, as->nchannels);
-
-    switch (as->fmt) {
+    size_t NumofBytes;
+    struct audsettings *AudioSettings;
+    memcpy((struct audsettings*)&AudioSettings,(struct audsettings *)&as,NumofBytes);
+    dolog ("frequency=%d nchannels=%d fmt=", AudioSettings->freq, AudioSettings->nchannels);
+    if(AudioSettings) {
+    switch (AudioSettings->fmt) {
     case AUD_FMT_S8:
         AUD_log (NULL, "S8");
         break;
@@ -535,12 +542,12 @@ static void audio_print_settings (struct audsettings *as)
         AUD_log (NULL, "U32");
         break;
     default:
-        AUD_log (NULL, "invalid(%d)", as->fmt);
+        AUD_log (NULL, "invalid(%d)", AudioSettings->fmt);
         break;
     }
 
     AUD_log (NULL, " endianness=");
-    switch (as->endianness) {
+    switch (AudioSettings->endianness) {
     case 0:
         AUD_log (NULL, "little");
         break;
@@ -552,14 +559,16 @@ static void audio_print_settings (struct audsettings *as)
         break;
     }
     AUD_log (NULL, "\n");
+    }
+    return;
 }
 
 static int audio_validate_settings (struct audsettings *as)
 {
     int invalid;
 
-    invalid = as->nchannels != 1 && as->nchannels != 2;
-    invalid |= as->endianness != 0 && as->endianness != 1;
+    invalid = ((as->nchannels != 1) && (as->nchannels != 2));
+    invalid |= ((as->endianness != 0 ) && (as->endianness != 1));
 
     switch (as->fmt) {
     case AUD_FMT_S8:
