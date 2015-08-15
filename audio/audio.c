@@ -888,7 +888,7 @@ int audio_pcm_hw_clip_out (HWVoiceOut *hw, void *pcm_buf,
  */
 static int audio_pcm_sw_get_rpos_in (SWVoiceIn *sw)
 {
-    HWVoiceIn *hw = sw->hw;
+    HWVoiceIn *hw = (HWVoiceIn *)sw->hw;
     int live = hw->total_samples_captured - sw->total_hw_samples_acquired;
     int rpos;
 
@@ -908,7 +908,7 @@ static int audio_pcm_sw_get_rpos_in (SWVoiceIn *sw)
 
 int audio_pcm_sw_read (SWVoiceIn *sw, void *buf, int size)
 {
-    HWVoiceIn *hw = sw->hw;
+    HWVoiceIn *hw = (HWVoiceIn *)sw->hw;
     int samples, live, ret = 0, swlim, isamp, osamp, rpos, total = 0;
     struct st_sample *src, *dst = sw->buf;
 
