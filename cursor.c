@@ -7,7 +7,7 @@
 /* for creating built-in cursors */
 static QEMUCursor *cursor_parse_xpm(const char *xpm[])
 {
-    QEMUCursor *c;
+    QEMUCursor *c = NULL;
     uint32_t ctab[128];
     unsigned int width, height, colors, chars;
     unsigned int line = 0, i, r, g, b, x, y, pixel;
@@ -30,7 +30,7 @@ static QEMUCursor *cursor_parse_xpm(const char *xpm[])
     for (i = 0; i < colors; i++, line++) {
         if (sscanf(xpm[line], "%c c %15s", &idx, name) == 2) {
             if (sscanf(name, "#%02x%02x%02x", &r, &g, &b) == 3) {
-                ctab[idx] = (0xff << 24) | (b << 16) | (g << 8) | r;
+                ctab[idx] = ((0xff << 24) | (b << 16) | (g << 8) | r);
                 continue;
             }
             if (strcmp(name, "None") == 0) {
@@ -57,12 +57,12 @@ static QEMUCursor *cursor_parse_xpm(const char *xpm[])
 /* nice for debugging */
 void cursor_print_ascii_art(QEMUCursor *c, const char *prefix)
 {
-    uint32_t *data = c->data;
+    uint32_t *data = (uint32_t*)c->data;
     int x,y;
 
-    for (y = 0; y < c->height; y++) {
+    for (y = 0; y < (int)c->height; y++) {
         fprintf(stderr, "%s: %2d: |", prefix, y);
-        for (x = 0; x < c->width; x++, data++) {
+        for (x = 0; x < (int)c->width; x++, data++) {
             if ((*data & 0xff000000) != 0xff000000) {
                 fprintf(stderr, " "); /* transparent */
             } else if ((*data & 0x00ffffff) == 0x00ffffff) {
@@ -79,7 +79,7 @@ void cursor_print_ascii_art(QEMUCursor *c, const char *prefix)
 
 QEMUCursor *cursor_builtin_hidden(void)
 {
-    QEMUCursor *c;
+    QEMUCursor *c = NULL;
 
     c = cursor_parse_xpm(cursor_hidden_xpm);
     return c;
@@ -87,7 +87,7 @@ QEMUCursor *cursor_builtin_hidden(void)
 
 QEMUCursor *cursor_builtin_left_ptr(void)
 {
-    QEMUCursor *c;
+    QEMUCursor *c = NULL;
 
     c = cursor_parse_xpm(cursor_left_ptr_xpm);
     return c;
@@ -95,8 +95,8 @@ QEMUCursor *cursor_builtin_left_ptr(void)
 
 QEMUCursor *cursor_alloc(int width, int height)
 {
-    QEMUCursor *c;
-    int datasize = width * height * sizeof(uint32_t);
+    QEMUCursor *c = NULL;
+    int datasize = ((width) * (height) * (sizeof(uint32_t)));
 
     c = qemu_mallocz(sizeof(QEMUCursor) + datasize);
     c->width  = width;
@@ -107,7 +107,10 @@ QEMUCursor *cursor_alloc(int width, int height)
 
 void cursor_get(QEMUCursor *c)
 {
+    if(c){
     c->refcount++;
+    }
+    return;
 }
 
 void cursor_put(QEMUCursor *c)
@@ -118,25 +121,28 @@ void cursor_put(QEMUCursor *c)
     if (c->refcount)
         return;
     qemu_free(c);
+    c = NULL;
 }
 
 int cursor_get_mono_bpl(QEMUCursor *c)
 {
-    return (c->width + 7) / 8;
+    if(c){
+    return ((c->width + 7) / 8);
+    }
+    return 0;
 }
 
 void cursor_set_mono(QEMUCursor *c,
                      uint32_t foreground, uint32_t background, uint8_t *image,
                      int transparent, uint8_t *mask)
 {
-    uint32_t *data = c->data;
-    uint8_t bit;
+    uint32_t *data = (uint32_t *)c->data;
+    uint8_t bit = 0x80;
     int x,y,bpl;
 
     bpl = cursor_get_mono_bpl(c);
     for (y = 0; y < c->height; y++) {
-        bit = 0x80;
-        for (x = 0; x < c->width; x++, data++) {
+        for (x = 0; x < (int)c->width; x++, data++) {
             if (transparent && mask[x/8] & bit) {
                 *data = 0x00000000;
             } else if (!transparent && !(mask[x/8] & bit)) {
@@ -158,15 +164,14 @@ void cursor_set_mono(QEMUCursor *c,
 
 void cursor_get_mono_image(QEMUCursor *c, int foreground, uint8_t *image)
 {
-    uint32_t *data = c->data;
-    uint8_t bit;
+    uint32_t *data = (uint32_t *)c->data;
+    uint8_t bit = 0x80;
     int x,y,bpl;
 
     bpl = cursor_get_mono_bpl(c);
-    memset(image, 0, bpl * c->height);
+    memset(image, 0, ((bpl)*(int)(c->height));
     for (y = 0; y < c->height; y++) {
-        bit = 0x80;
-        for (x = 0; x < c->width; x++, data++) {
+          for (x = 0; x < (int)c->width; x++, data++) {
             if (((*data & 0xff000000) == 0xff000000) &&
                 ((*data & 0x00ffffff) == foreground)) {
                 image[x/8] |= bit;
@@ -182,16 +187,15 @@ void cursor_get_mono_image(QEMUCursor *c, int foreground, uint8_t *image)
 
 void cursor_get_mono_mask(QEMUCursor *c, int transparent, uint8_t *mask)
 {
-    uint32_t *data = c->data;
-    uint8_t bit;
+    uint32_t *data = (uint32_t *)c->data;
+    uint8_t bit = 0x80;
     int x,y,bpl;
-
+    if(c){
     bpl = cursor_get_mono_bpl(c);
-    memset(mask, 0, bpl * c->height);
+    memset(mask, 0, ((bpl)*(int)(c->height));
     for (y = 0; y < c->height; y++) {
-        bit = 0x80;
-        for (x = 0; x < c->width; x++, data++) {
-            if ((*data & 0xff000000) != 0xff000000) {
+            for (x = 0; x < (int)c->width; x++, data++) {
+            if (((*data) & 0xff000000) != 0xff000000) {
                 if (transparent != 0) {
                     mask[x/8] |= bit;
                 }
@@ -207,4 +211,6 @@ void cursor_get_mono_mask(QEMUCursor *c, int transparent, uint8_t *mask)
         }
         mask += bpl;
     }
+}
+return;
 }
