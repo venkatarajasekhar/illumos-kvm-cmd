@@ -27,16 +27,36 @@
 #include "qemu-aio.h"
 
 #define _(x)	x	/* not gettext support yet */
+#define EXABYTES(x)	((long long)(x) << 60)
+#define PETABYTES(x)	((long long)(x) << 50)
+#define TERABYTES(x)	((long long)(x) << 40)
+#define GIGABYTES(x)	((long long)(x) << 30)
+#define MEGABYTES(x)	((long long)(x) << 20)
+#define KILOBYTES(x)	((long long)(x) << 10)
+
+#define TO_EXABYTES(x)	((x) / EXABYTES(1))
+#define TO_PETABYTES(x)	((x) / PETABYTES(1))
+#define TO_TERABYTES(x)	((x) / TERABYTES(1))
+#define TO_GIGABYTES(x)	((x) / GIGABYTES(1))
+#define TO_MEGABYTES(x)	((x) / MEGABYTES(1))
+#define TO_KILOBYTES(x)	((x) / KILOBYTES(1))
+
+#define HOURS(sec)	((sec) / (60 * 60))
+#define MINUTES(sec)	(((sec) % (60 * 60)) / 60)
+#define SECONDS(sec)	((sec) % 60)
 
 /* from libxcmd/command.c */
-
+static cmdinfo_t quit_cmd;
 cmdinfo_t	*cmdtab;
 int		ncmds;
-
+static cmdinfo_t help_cmd;
 static argsfunc_t	args_func;
 static checkfunc_t	check_func;
 static int		ncmdline;
 static char		**cmdline;
+
+static void help_onecmd(const char *cmd, const cmdinfo_t *ct);
+static void help_oneline(const char *cmd, const cmdinfo_t *ct);
 
 static int
 compare(const void *a, const void *b)
@@ -362,15 +382,10 @@ doneline(
 	char	**vec)
 {
 	free(input);
+	input = NULL;
 	free(vec);
+	vec = NULL;
 }
-
-#define EXABYTES(x)	((long long)(x) << 60)
-#define PETABYTES(x)	((long long)(x) << 50)
-#define TERABYTES(x)	((long long)(x) << 40)
-#define GIGABYTES(x)	((long long)(x) << 30)
-#define MEGABYTES(x)	((long long)(x) << 20)
-#define KILOBYTES(x)	((long long)(x) << 10)
 
 long long
 cvtnum(
@@ -409,13 +424,6 @@ cvtnum(
 	return -1LL;
 }
 
-#define TO_EXABYTES(x)	((x) / EXABYTES(1))
-#define TO_PETABYTES(x)	((x) / PETABYTES(1))
-#define TO_TERABYTES(x)	((x) / TERABYTES(1))
-#define TO_GIGABYTES(x)	((x) / GIGABYTES(1))
-#define TO_MEGABYTES(x)	((x) / MEGABYTES(1))
-#define TO_KILOBYTES(x)	((x) / KILOBYTES(1))
-
 void
 cvtstr(
 	double		value,
@@ -450,15 +458,15 @@ cvtstr(
 	}
 }
 
-struct timeval
-tsub(struct timeval t1, struct timeval t2)
+struct timeval*
+tsub(struct timeval *t1, struct timeval *t2)
 {
-	t1.tv_usec -= t2.tv_usec;
-	if (t1.tv_usec < 0) {
-		t1.tv_usec += 1000000;
-		t1.tv_sec--;
+	t1->tv_usec -= t2->tv_usec;
+	if (t1->tv_usec < 0) {
+		t1->tv_usec += 1000000;
+		t1->tv_sec--;
 	}
-	t1.tv_sec -= t2.tv_sec;
+	t1->tv_sec -= t2->tv_sec;
 	return t1;
 }
 
@@ -467,10 +475,6 @@ tdiv(double value, struct timeval tv)
 {
 	return value / ((double)tv.tv_sec + ((double)tv.tv_usec / 1000000.0));
 }
-
-#define HOURS(sec)	((sec) / (60 * 60))
-#define MINUTES(sec)	(((sec) % (60 * 60)) / 60)
-#define SECONDS(sec)	((sec) % 60)
 
 void
 timestr(
@@ -506,7 +510,7 @@ timestr(
 
 /* from libxcmd/quit.c */
 
-static cmdinfo_t quit_cmd;
+
 
 /* ARGSUSED */
 static int
@@ -533,9 +537,7 @@ quit_init(void)
 
 /* from libxcmd/help.c */
 
-static cmdinfo_t help_cmd;
-static void help_onecmd(const char *cmd, const cmdinfo_t *ct);
-static void help_oneline(const char *cmd, const cmdinfo_t *ct);
+
 
 static void
 help_all(void)
