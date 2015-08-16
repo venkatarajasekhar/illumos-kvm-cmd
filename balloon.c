@@ -33,12 +33,12 @@
 
 
 static QEMUBalloonEvent *qemu_balloon_event;
-void *qemu_balloon_event_opaque;
+void *qemu_balloon_event_opaque = NULL;
 
 void qemu_add_balloon_handler(QEMUBalloonEvent *func, void *opaque)
 {
     qemu_balloon_event = func;
-    qemu_balloon_event_opaque = opaque;
+    qemu_balloon_event_opaque = (qemu_balloon_event_opaque *)opaque;
 }
 
 int qemu_balloon(ram_addr_t target, MonitorCompletion cb, void *opaque)
@@ -64,7 +64,7 @@ int qemu_balloon_status(MonitorCompletion cb, void *opaque)
 
 static void print_balloon_stat(const char *key, QObject *obj, void *opaque)
 {
-    Monitor *mon = opaque;
+    Monitor *mon = (Monitor*)opaque;
 
     if (strcmp(key, "actual"))
         monitor_printf(mon, ",%s=%" PRId64, key,
