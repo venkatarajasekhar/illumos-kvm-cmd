@@ -360,22 +360,24 @@ static void audio_print_options (const char *prefix,
                                  struct audio_option *opt)
 {
     char *uprefix;
-
+    uprefix = audio_alloc_prefix (prefix);
+    const char *state = "default";
+    int *intp = (int *)&opt->valp;
+    audfmt_e *fmtp = (audfmt_e *)&opt->valp;
+    const char **strp = opt->valp;
+    
     if (!prefix) {
         dolog ("No prefix specified\n");
         return;
     }
 
-    if (!opt) {
+    if ((!opt) ||(!uprefix)||(!state)||(!intp)||(!fmtp) ||(strp)) {
         dolog ("No options\n");
         return;
     }
 
-    uprefix = audio_alloc_prefix (prefix);
-
-    for (; opt->name; opt++) {
-        const char *state = "default";
-        printf ("  %s_%s: ", uprefix, opt->name);
+       for (; opt->name; opt++) {
+         printf ("  %s_%s: ", uprefix, opt->name);
 
         if (opt->overriddenp && *opt->overriddenp) {
             state = "current";
@@ -384,21 +386,19 @@ static void audio_print_options (const char *prefix,
         switch (opt->tag) {
         case AUD_OPT_BOOL:
             {
-                int *intp = opt->valp;
                 printf ("boolean, %s = %d\n", state, *intp ? 1 : 0);
             }
             break;
 
         case AUD_OPT_INT:
             {
-                int *intp = opt->valp;
+                //int *intp = opt->valp;
                 printf ("integer, %s = %d\n", state, *intp);
             }
             break;
 
         case AUD_OPT_FMT:
             {
-                audfmt_e *fmtp = opt->valp;
                 printf (
                     "format, %s = %s, (one of: U8 S8 U16 S16 U32 S32)\n",
                     state,
@@ -409,8 +409,7 @@ static void audio_print_options (const char *prefix,
 
         case AUD_OPT_STR:
             {
-                const char **strp = opt->valp;
-                printf ("string, %s = %s\n",
+               printf ("string, %s = %s\n",
                         state,
                         *strp ? *strp : "(not set)");
             }
